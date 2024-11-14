@@ -5,7 +5,7 @@ if [ -f .env ]; then
     export $(cat .env | xargs)
 fi
 
-python3.9 -m pip install openai pydantic -t .
+python3.12 -m pip install requests -t .
 
 # Zip the function code
 zip -r function.zip .
@@ -20,12 +20,12 @@ if aws lambda get-function --function-name $FUNCTION_NAME >/dev/null 2>&1; then
         --function-name $FUNCTION_NAME \
         --zip-file fileb://function.zip \
         --architectures arm64 \
-        --runtime python3.9
+        --runtime python3.12
 else
     echo "Function $FUNCTION_NAME does not exist. Creating the function."
     aws lambda create-function \
         --function-name $FUNCTION_NAME \
-        --runtime python3.9 \
+        --runtime python3.12 \
         --role $ROLE_ARN \
         --handler lambda_handler.lambda_handler \
         --zip-file fileb://function.zip \
