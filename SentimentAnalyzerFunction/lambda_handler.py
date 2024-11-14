@@ -67,46 +67,36 @@ def process_message(text):
 
 def lambda_handler(event, context):
     output_records = []
+    logger.info(f"Received json event: {json.dumps(event)}")
     
-    for record in event['Records']:
+    # Ensure we're iterating over 'records' (not 'Records')
+    for record in event['records']:
+        # Decode the base64-encoded 'data' field
+        record_data = base64.b64decode(record['data']).decode('utf-8')
+        
+        # Parse the decoded record data as JSON
         try:
-            # Extract the base64-encoded data
-            encoded_data = record.get('kinesis', {}).get('data', '')
-            
-            # Check if the data is empty
-            if not encoded_data:
-                logger.warning(f"Empty data field in record: {record}")
-                continue  # Skip this record if no data
-            
-            # Decode the base64-encoded data
-            try:
-                decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-                logger.info(f"Decoded data: {decoded_data}")
-            except Exception as e:
-                logger.error(f"Base64 decode failed for record: {record} - Error: {e}")
-                continue  # Skip this record if decoding fails
-            
-            # Parse the decoded data as JSON
-            try:
-                payload = json.loads(decoded_data)
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to decode JSON for record: {record} - Error: {e}")
-                continue  # Skip this record if JSON decoding fails
-            
-            # Process the message (assuming the message has 'text' field)
-            message_text = payload.get('text', '')
+            payload = json.loads(record_data)
+        except json.JSONDecodeError:
+            logger.error(f"Error decoding record data: {record_data}")
+            continue
+        
+        message_text = payload.get('text', '')
+        if message_text:
+            # Process the message through OpenAI API for classification
             result = process_message(message_text)
 
             # Attach the result to the payload
             payload['is_political'] = result['is_political']
             payload['sentiment_score'] = result['sentiment_score']
-            
+        
             # Add the processed record to the output list
             output_records.append({
-                'Data': json.dumps(payload)
+                'recordId': record['recordId'],
+                'Data': base64.b64encode(json.dumps(payload).encode('utf-8')).decode('utf-8')
             })
-        
-        except Exception as e:
-            logger.error(f"Unexpected error processing record: {record} - Error: {e}")
-    
-    return {'Records': output_records}
+        else:
+            logger.error(f"Message text not found in record: {record_data}")
+
+    # Return the processed records
+    return {'records': output_records}
