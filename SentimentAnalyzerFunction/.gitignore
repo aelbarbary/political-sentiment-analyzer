@@ -5,3 +5,4 @@
 !lambda_handler.py
 !requirements.txt  # If you have a requirements file for dependencies
 !deploy.sh
+!.dockerfile

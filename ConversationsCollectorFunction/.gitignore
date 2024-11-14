@@ -1,1 +1,7 @@
-function.zip
+# Ignore everything
+*
+# Un-ignore specific files and directories
+!.gitignore
+!lambda_handler.py
+!requirements.txt 
+!deploy.sh
