@@ -14,11 +14,12 @@ OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 def process_message(text):
     try:
         prompt = (
-            f"Classify the following message. Respond with one of the following options:\n"
-            f"- If the message is political, respond with: 'Political: Sentiment: [score]' where score is between -10 (very negative) and 10 (very positive).\n"
-            f"- If the message is not political, respond with: 'Not Political'.\n\n"
-            f"Message: \"{text}\""
-        )
+        f"Classify the following message. Respond with one of the following options:\n"
+        f"- If the message is political, respond with: 'Political: Sentiment: [score]' where score is between -10 (very negative) and 10 (very positive).\n"
+        f"- If the message is not political, respond with: 'Not Political'.\n\n"
+        f"Message: \"{text}\""
+        f"\n\nGuidelines: A message is considered political if it refers to political figures, political parties, elections, government policies, or political movements. If the message expresses political opinions or endorsements, it should be classified as political."
+    )
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -93,7 +94,8 @@ def lambda_handler(event, context):
             # Add the processed record to the output list
             output_records.append({
                 'recordId': record['recordId'],
-                'Data': base64.b64encode(json.dumps(payload).encode('utf-8')).decode('utf-8')
+                "result": "Ok",
+                'data': base64.b64encode(json.dumps(payload).encode('utf-8')).decode('utf-8')
             })
         else:
             logger.error(f"Message text not found in record: {record_data}")
