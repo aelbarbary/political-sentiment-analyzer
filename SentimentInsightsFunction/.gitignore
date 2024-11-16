@@ -1,0 +1,8 @@
+# Ignore everything
+*
+# Un-ignore specific files and directories
+!.gitignore
+!lambda_handler.py
+!requirements.txt  # If you have a requirements file for dependencies
+!deploy.sh
+!Dockerfile
